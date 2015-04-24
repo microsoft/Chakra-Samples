@@ -1,2 +1,2 @@
 # Chakra-Samples
-Repository for F12 Developer Tools related samples.
+Repository for Chakra relateds samples.
