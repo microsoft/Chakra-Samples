@@ -12,8 +12,8 @@ This sample shows how to host the JavaScript Runtime (JSRT) APIs in a non-IE app
 The sample has versions built with [Edge and Legacy JSRT](https://msdn.microsoft.com/en-us/library/dn903710.aspx). The legacy samples can also be downloaded [here](https://code.msdn.microsoft.com/JavaScript-Runtime-Hosting-d3a13880). 
 
 ## Operating system requirements
-- Client: Windows 8.1
-- Server: Windows Server 2012 R2 
+- Edge samples: Windows 10 Insider Preview, Windows 10 SDK, and Visual Studio 2015 RC. All of these can be downloaded [here](https://dev.windows.com/en-US/downloads/windows-10-developer-tools).
+- Legacy samples: Windows 8.1 or Windows Server 2012 R2 or higher.
 
 
 ## Build the sample
