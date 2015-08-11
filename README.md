@@ -1,5 +1,5 @@
 # Chakra-Samples
-Repository for Chakra relateds samples.
+Repository for Chakra related samples.
 
 
 ## Terms of Use
