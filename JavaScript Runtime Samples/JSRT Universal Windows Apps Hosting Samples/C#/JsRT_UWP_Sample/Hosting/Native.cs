@@ -267,8 +267,8 @@
         internal static extern JavaScriptErrorCode JsProjectWinRTNamespace(string namespaceName);
 
         [DllImport("chakra.dll")]
-        internal static extern JavaScriptErrorCode JsInspectableToObject(System.Object inspectable, out JavaScriptValue value);
-
+        internal static extern JavaScriptErrorCode JsInspectableToObject([MarshalAs(UnmanagedType.IInspectable)] System.Object inspectable, out JavaScriptValue value);
+        
         [DllImport("chakra.dll")]
         internal static extern JavaScriptErrorCode JsSetProjectionEnqueueCallback(JavaScriptProjectionEnqueueCallback projectionEnqueueCallback, IntPtr context);
 
