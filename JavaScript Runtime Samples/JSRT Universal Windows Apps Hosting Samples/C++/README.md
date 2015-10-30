@@ -10,7 +10,7 @@ This Universal Windows Application sample is a JavaScript console application bu
 
 
 ## Requirements
-This sample requires Windows 10 Insider Preview (build 10074 or higher), Windows 10 SDK, and Visual Studio 2015 RC. All of these can be downloaded [here](https://dev.windows.com/en-US/downloads/windows-10-developer-tools). 
+This sample requires [Windows 10](http://www.microsoft.com/en-US/windows/features) and [Visual Studio 2015](https://www.visualstudio.com/en-us/products/vs-2015-product-editions.aspx) (with Windows 10 SDK installed). 
 
 
 ## Build the sample
