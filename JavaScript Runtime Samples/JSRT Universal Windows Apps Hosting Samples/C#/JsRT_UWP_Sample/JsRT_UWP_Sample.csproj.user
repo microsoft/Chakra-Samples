@@ -10,6 +10,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugEngines>{F200A7E7-DEA5-11D0-B854-00A0244A1DE2}</DebugEngines>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|ARM'">
     <DebugEngines>{F200A7E7-DEA5-11D0-B854-00A0244A1DE2}</DebugEngines>

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Runtime.InteropServices;
 using ChakraHost.Hosting;
 
@@ -8,7 +9,7 @@ namespace ChakraHost
     {
         private static JavaScriptSourceContext currentSourceContext = JavaScriptSourceContext.FromIntPtr(IntPtr.Zero);
         private static JavaScriptRuntime runtime;
-        private static JavaScriptValue promiseCallback;
+        private static Queue taskQueue = new Queue();
 
         public ChakraHost()
         {
@@ -30,7 +31,7 @@ namespace ChakraHost
             // ES6 Promise callback
             JavaScriptPromiseContinuationCallback promiseContinuationCallback = delegate (JavaScriptValue task, IntPtr callbackState)
             {
-                promiseCallback = task;
+                taskQueue.Enqueue(task);
             };
 
             if (Native.JsSetPromiseContinuationCallback(promiseContinuationCallback, IntPtr.Zero) != JavaScriptErrorCode.NoError)
@@ -52,7 +53,6 @@ namespace ChakraHost
             try
             {
                 JavaScriptValue result;
-                JavaScriptValue promiseResult;
 
                 if (Native.JsRunScript(script, currentSourceContext++, "", out result) != JavaScriptErrorCode.NoError)
                 {
@@ -79,12 +79,15 @@ namespace ChakraHost
                     return Marshal.PtrToStringUni(message);
                 }
 
-                // Execute promise tasks stored in promiseCallback 
-                while (promiseCallback.toIntPtr() != IntPtr.Zero)
+                // Execute promise tasks stored in taskQueue 
+                while (taskQueue.Count != 0)
                 {                
-                    JavaScriptValue task = promiseCallback;
-                    promiseCallback = new JavaScriptValue(IntPtr.Zero);
-                    Native.JsCallFunction(task, null, 0, out promiseResult);
+                    JavaScriptValue task = (JavaScriptValue) taskQueue.Dequeue();
+                    JavaScriptValue promiseResult;
+                    JavaScriptValue global;
+                    Native.JsGetGlobalObject(out global);
+                    JavaScriptValue[] args = new JavaScriptValue[1] {global};
+                    Native.JsCallFunction(task, args, 1, out promiseResult);
                 }
 
                 // Convert the return value.

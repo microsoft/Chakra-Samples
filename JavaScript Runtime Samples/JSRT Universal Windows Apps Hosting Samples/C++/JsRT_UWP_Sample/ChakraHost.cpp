@@ -5,10 +5,11 @@
 using namespace std;
 
 // ES6 Promise callback
-static void CALLBACK PromiseContinuationCallback(JsValueRef task, void *callbackState)
+void CALLBACK PromiseContinuationCallback(JsValueRef task, void *callbackState)
 {
-	// Save promise task in the callback.
-	*(void **)callbackState = task;
+	// Save promise task in taskQueue.
+	queue<JsValueRef> * q = (queue<JsValueRef> *)callbackState;
+	q->push(task);
 }
 
 // Initilize host
@@ -17,7 +18,6 @@ wstring _cdecl ChakraHost::init()
 	try
 	{
 		currentSourceContext = 0;
-		promiseCallback = JS_INVALID_REFERENCE;
 		JsRuntimeHandle runtime;
 		JsContextRef context;
 
@@ -34,7 +34,7 @@ wstring _cdecl ChakraHost::init()
 			return L"failed to set current context.";
 
 		// Set up ES6 Promise 
-		if (JsSetPromiseContinuationCallback(PromiseContinuationCallback, &promiseCallback) != JsNoError)
+		if (JsSetPromiseContinuationCallback(PromiseContinuationCallback, &taskQueue) != JsNoError)
 			return L"failed to set PromiseContinuationCallback.";
 
 		// UWP namespace projection; all UWP under Windows namespace should work.
@@ -59,7 +59,6 @@ wstring _cdecl ChakraHost::runScript(wstring script)
 	{
 		JsValueRef result;
 		JsValueRef promiseResult;
-		JsValueRef task = JS_INVALID_REFERENCE;
 
 		// Run the script.
 		if (JsRunScript(script.c_str(), currentSourceContext++, L"", &result) != JsNoError)
@@ -85,11 +84,13 @@ wstring _cdecl ChakraHost::runScript(wstring script)
 			return message;
 		}
 
-		// Execute promise tasks stored in promiseCallback 
-		while (promiseCallback != JS_INVALID_REFERENCE) {
-			task = promiseCallback;
-			promiseCallback = JS_INVALID_REFERENCE;
-			JsCallFunction(task, nullptr, 0, &promiseResult);
+		// Execute promise tasks stored in taskQueue
+		while (!taskQueue.empty()) {
+			JsValueRef task = taskQueue.front();
+			taskQueue.pop();
+			JsValueRef global;
+			JsGetGlobalObject(&global);
+			JsCallFunction(task, &global, 1, &result);
 		}
 
 		// Convert the return value to wstring.
