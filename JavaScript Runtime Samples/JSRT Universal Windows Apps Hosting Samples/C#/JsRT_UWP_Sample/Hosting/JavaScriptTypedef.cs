@@ -304,7 +304,7 @@
     /// <param name="argumentCount">The number of arguments.</param>
     /// <param name="callbackData">Callback data, if any.</param>
     /// <returns>The result of the call, if any.</returns>
-    public delegate JavaScriptValue JavaScriptNativeFunction(JavaScriptValue callee, bool isConstructCall, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] JavaScriptValue[] arguments, ushort argumentCount, IntPtr callbackData);
+    public delegate JavaScriptValue JavaScriptNativeFunction(JavaScriptValue callee, [MarshalAs(UnmanagedType.U1)] bool isConstructCall, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] JavaScriptValue[] arguments, ushort argumentCount, IntPtr callbackData);
 
     /// <summary>
     ///     A callback called before collecting an object.
