@@ -1,5 +1,5 @@
 # Chakra-Samples
-Repository for Chakra related samples.
+Repository for Chakra and [ChakraCore](https://github.com/Microsoft/ChakraCore) samples.
 
 
 ## Terms of Use
