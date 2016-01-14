@@ -10,8 +10,8 @@ This sample requires Windows 7 SP1 or above with either Visual Studio 2013 or 20
 
 ## Build and run the sample
 1. Clone and build [ChakraCore](https://github.com/Microsoft/ChakraCore). You will need to grab,
-	* **CharkaCore.h** and **chakracommon.h** from `lib\jsrt\`, which are the headers. 
-	* **CharkaCore.lib** and **ChakraCore.dll** from `Build\VcBuild\bin\[platform+output]\`.
+	* **ChakraCore.h** and **chakracommon.h** from `lib\jsrt\`, which are the headers. 
+	* **ChakraCore.lib** and **ChakraCore.dll** from `Build\VcBuild\bin\[platform+output]\`.
 2. Open **HelloWorld.sln** with Visual Studio.
 3. Copy the headers and lib to the sample project's directory, and copy **ChakraCore.dll** to the sample project's output directory. 
 4. Build the sample by pressing  **F6**  or using  **Build > Build Solution**.
