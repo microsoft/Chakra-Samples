@@ -12,11 +12,16 @@ LDIR=$(LIBRARY_PATH)/../pal/src/libChakra.Pal.a \
 	$(LIBRARY_PATH)/Jsrt/libChakra.Jsrt.a
 
 ifeq (darwin, ${PLATFORM})
+ICU4C_LIBRARY_PATH ?= /usr/local/opt/icu4c
 CFLAGS=-lstdc++ -std=c++11 -I$(IDIR)
 FORCE_STARTS=-Wl,-force_load,
 FORCE_ENDS=
-LIBS=-framework CoreFoundation -framework Security -licucore -lm -ldl -Wno-c++11-compat-deprecated-writable-strings \
+LIBS=-framework CoreFoundation -framework Security -lm -ldl -Wno-c++11-compat-deprecated-writable-strings \
 	-Wno-deprecated-declarations -Wno-unknown-warning-option -o sample.o
+LDIR=$(LDIR)\
+	$(ICU4C_LIBRARY_PATH)/lib/libicudata.a \
+	$(ICU4C_LIBRARY_PATH)/lib/libicuuc.a \
+	$(ICU4C_LIBRARY_PATH)/lib/libicui18n.a
 else
 CFLAGS=-lstdc++ -std=c++0x -I$(IDIR)
 FORCE_STARTS=-Wl,--whole-archive
