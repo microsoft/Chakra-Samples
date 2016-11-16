@@ -8,7 +8,7 @@ import os.path
 from ctypes import *
 
 def usage():
-    print("usage:\npython helloWorld.py [path to ChakraCore.dll or libChakraCore.so]");
+    print("usage:\npython helloWorld.py [path to ChakraCore.dll, libChakraCore.so or libChakraCore.dylib]");
     sys.exit(0)
 
 if len(sys.argv) < 2:
@@ -27,35 +27,50 @@ if sys.platform != 'win32':
     # Attach main thread
     chakraCore.DllMain(0, 2, 0);
 
-script = create_string_buffer("(()=>{return \'Hello world!\';})()");
+script = create_string_buffer("(()=>{return \'Hello world!\';})()")
+fileName = "sample.js"
 
 runtime = c_void_p()
-# Create Javascript Runtime. 
+# Create Javascript Runtime.
 chakraCore.JsCreateRuntime(0, 0, byref(runtime));
 
 context = c_void_p()
-# Create an execution context. 
+# Create an execution context.
 chakraCore.JsCreateContext(runtime, byref(context));
 
 # Now set the current execution context.
 chakraCore.JsSetCurrentContext(context);
 
-jsResult=c_void_p();
-# Run the script.
-chakraCore.JsRunScriptUtf8(script, 0, "", byref(jsResult));
+fname = c_void_p();
+# create JsValueRef from filename
+chakraCore.JsCreateStringUtf8(fileName, len(fileName), byref(fname));
 
-# Convert your script result to String in JavaScript; redundant if your script returns a String
+scriptSource = c_void_p();
+# Create ArrayBuffer from script source
+chakraCore.JsCreateExternalArrayBuffer(script, len(script), 0, 0, byref(scriptSource));
+
+jsResult = c_void_p();
+# Run the script.
+chakraCore.JsRun(scriptSource, 0, fname, 0, byref(jsResult));
+
+# Convert script result to String in JavaScript; redundant if script returns a String
 resultJSString = c_void_p()
 chakraCore.JsConvertValueToString(jsResult, byref(resultJSString));
 
-# Project script result back to Python.
-resultSTR=c_char_p();
 stringLength = c_size_t();
-chakraCore.JsStringToPointerUtf8Copy(resultJSString, byref(resultSTR), byref(stringLength));
+# Get buffer size needed for the result string
+chakraCore.JsCopyStringUtf8(resultJSString, 0, 0, byref(stringLength));
+
+resultSTR = create_string_buffer(stringLength.value + 1); # buffer is big enough to store the result
+
+# Get String from JsValueRef
+chakraCore.JsCopyStringUtf8(resultJSString, byref(resultSTR), stringLength.value + 1, 0);
+
+# Set `null-ending` to the end
+resultSTRLastByte = (c_char * stringLength.value).from_address(addressof(resultSTR))
+resultSTRLastByte = '\0';
 
 print("Result from ChakraCore: ", resultSTR.value);
-
-chakraCore.JsStringFree(resultSTR);
 
 # Dispose runtime
 chakraCore.JsDisposeRuntime(runtime);
