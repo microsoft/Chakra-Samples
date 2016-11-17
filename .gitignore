@@ -1,0 +1,5 @@
+# Ignore ChakraCore subfolder Should it exist.
+ChakraCore/
+
+# Ignore build directories.
+BuildLinux/
