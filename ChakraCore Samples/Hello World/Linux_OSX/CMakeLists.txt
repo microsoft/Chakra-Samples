@@ -10,21 +10,25 @@ if(CC_TARGETS_X86)
   set(lib_target "-m32")
 endif()
 
-# common link deps
-set(lib_target "${lib_target}"
-   -Wl,-undefined,error
-  ${LINKER_START_GROUP}
-  ChakraCore
-  Chakra.Common.Core
-  Chakra.Jsrt
-  Chakra.Pal
-
-  
-
-  ${LINKER_END_GROUP}
-  )
-
-
+if(TARGET ChakraCore)
+	# common link deps
+	set(lib_target "${lib_target}"
+	   -Wl,-undefined,error
+	  ${LINKER_START_GROUP}
+	  ChakraCore
+	  ${LINKER_END_GROUP}
+	  )
+else()
+	#TODO: Fix Static Compile.
+	set(lib_target "${lib_target}"
+	   -Wl,-undefined,error
+	  ${LINKER_START_GROUP}
+	  Chakra.Common.Core
+	  Chakra.Jsrt
+	  Chakra.Pal
+	  ${LINKER_END_GROUP}
+	  )
+endif()
 
 SET_TARGET_PROPERTIES(ChakraHelloWorld
                                PROPERTIES COMPILE_FLAGS "-std=c++11")
