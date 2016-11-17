@@ -47,6 +47,27 @@ add_custom_target(CopyChakraHeaders ALL
 )
 
 
+if(NOT CC_XCODE_PROJECT)
+  set(CC_LIB_EXT "so")
+  # Post build step to copy the built shared library
+  # to BuildLinux (or whatever the CMakeBuildDir is)
+  if(CMAKE_SYSTEM_NAME STREQUAL Darwin)
+    set(CC_LIB_EXT "dylib")
+  endif()
+	if(TARGET ChakraCore)
+  	  add_custom_command(TARGET ChakraHelloWorld POST_BUILD
+  	    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+  	    "${CMAKE_BINARY_DIR}/ChakraCore/libChakraCore.${CC_LIB_EXT}"
+  	    "${CMAKE_BINARY_DIR}/"
+  	  )
+  endif()
+  add_custom_command(TARGET ChakraHelloWorld POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+	"${CMAKE_BINARY_DIR}/ChakraCore Samples/Hello World/Linux_OSX/ChakraHelloWorld"
+	${CMAKE_BINARY_DIR}/
+  )
+endif()
+
 add_dependencies(ChakraHelloWorld CopyChakraHeaders)
 
 
