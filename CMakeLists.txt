@@ -7,6 +7,12 @@ find_package(PkgConfig)
 pkg_check_modules(PC_ICU_UC icu-uc)
 pkg_check_modules(PC_ICU_I18N icu-i18n)
 
+# Find Deps for OpenGL Example.
+find_package(OpenGL)
+pkg_check_modules(PC_GLFW glfw3)
+pkg_check_modules(PC_GLEW glew)
+#TODO: embed glew and glfw.
+
 if(EXISTS "${CMAKE_SOURCE_DIR}/ChakraCore/CMakeLists.txt")
 	SET(CC_AUTODETECT_CPU ON CACHE BOOL "" FORCE)
 	SET(CC_AUTODETECT_ICU ON CACHE BOOL "" FORCE)
@@ -41,3 +47,8 @@ add_custom_target(CopyChakraHeaders ALL
 
 add_subdirectory("ChakraCore Samples/Hello World/Linux_OSX")
 
+
+if(PC_GLFW_FOUND AND PC_GLEW_FOUND AND OpenGL_FOUND)
+	message(STATUS "Building OpenGL Example.")
+	add_subdirectory("ChakraCore Samples/OpenGL Engine/")
+endif()
