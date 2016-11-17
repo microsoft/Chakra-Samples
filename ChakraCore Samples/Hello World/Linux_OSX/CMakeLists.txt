@@ -30,22 +30,6 @@ SET_TARGET_PROPERTIES(ChakraHelloWorld
                                PROPERTIES COMPILE_FLAGS "-std=c++11")
 
 target_link_libraries (ChakraHelloWorld ${lib_target})
-add_custom_target(CopyChakraHeaders ALL
-	COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/include"
-	COMMAND ${CMAKE_COMMAND} -E copy_if_different
-		"${CMAKE_SOURCE_DIR}/ChakraCore/lib/Jsrt/ChakraCore.h"
-		"${CMAKE_BINARY_DIR}/include"
-	COMMAND ${CMAKE_COMMAND} -E copy_if_different
-		"${CMAKE_SOURCE_DIR}/ChakraCore/lib/Jsrt/ChakraCommon.h"
-		"${CMAKE_BINARY_DIR}/include"
-	COMMAND ${CMAKE_COMMAND} -E copy_if_different
-		"${CMAKE_SOURCE_DIR}/ChakraCore/lib/Jsrt/ChakraCommonWindows.h"
-		"${CMAKE_BINARY_DIR}/include"
-	COMMAND ${CMAKE_COMMAND} -E copy_if_different
-		"${CMAKE_SOURCE_DIR}/ChakraCore/lib/Jsrt/ChakraDebug.h"
-		"${CMAKE_BINARY_DIR}/include"
-)
-
 
 if(NOT CC_XCODE_PROJECT)
   set(CC_LIB_EXT "so")
