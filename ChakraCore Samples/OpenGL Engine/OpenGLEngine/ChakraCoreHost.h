@@ -4,6 +4,11 @@
 #include "ChakraCore.h"
 #include <queue>
 
+#ifndef CALLBACK
+#define CALLBACK
+#endif
+
+
 using namespace std;
 
 // a JavaScript host powered by ChakraCore
@@ -12,6 +17,9 @@ class ChakraCoreHost
 private:
 	JsRuntimeHandle runtime;
 	unsigned currentSourceContext;
+	JsErrorCode getPropertyID(const wchar_t *propertyName, JsPropertyIdRef *propertyId);
+	JsErrorCode getStringPointer(JsValueRef messageValue, wchar_t **result, size_t* length);
+
 public:
 	queue<Task*> taskQueue;
 	Canvas canvas;
@@ -37,6 +45,7 @@ private:
 	static JsValueRef mouseCallbackThisArg;
 	static void setCallback(JsValueRef object, const wchar_t *propertyName, JsNativeFunction callback, void *callbackState);
 	static void setProperty(JsValueRef object, const wchar_t *propertyName, JsValueRef property);
+	static JsErrorCode getPropertyID(const wchar_t *propertyName, JsPropertyIdRef *propID);
 	static JsValueRef getProperty(JsValueRef object, const wchar_t *propertyName);
 	static JsValueRef CALLBACK JSLog(JsValueRef callee, bool isConstructCall, JsValueRef *arguments, unsigned short argumentCount, void *callbackState);
 	static JsValueRef CALLBACK JSSetTimeout(JsValueRef callee, bool isConstructCall, JsValueRef *arguments, unsigned short argumentCount, void *callbackState);

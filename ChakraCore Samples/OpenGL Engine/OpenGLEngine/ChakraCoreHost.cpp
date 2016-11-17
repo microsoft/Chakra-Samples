@@ -1,8 +1,14 @@
 #pragma once
-#include "ChakraCoreHost.h"
 #include <string>
+#include <cwchar>
+#include <cstring>
+#include <cstdio>
 #include <assert.h>
 #include <time.h>
+
+#include "ChakraCoreHost.h"
+
+
 
 using namespace std;
 
@@ -51,12 +57,23 @@ ChakraCoreHost::ChakraCoreHost()
 wstring ChakraCoreHost::loadScript(wstring fileName)
 {
 	FILE *file;
+#ifdef _WIN32
 	if (_wfopen_s(&file, fileName.c_str(), L"rb"))
 	{
 		fwprintf(stderr, L"chakrahost: unable to open file: %s.\n", fileName.c_str());
 		return wstring();
 	}
-
+#else
+	/* Most paths should fit in 4096 wide characters.*/
+	char mbFilename[4096];
+	snprintf(mbFilename,4096,"%S",fileName.c_str());
+	file = fopen(mbFilename, "rb");
+	if (file == NULL)
+	{
+		fwprintf(stderr, L"chakrahost: unable to open file: %s.\n", fileName.c_str());
+		return wstring();
+	}
+#endif
 	unsigned int current = ftell(file);
 	fseek(file, 0, SEEK_END);
 	unsigned int end = ftell(file);
@@ -71,7 +88,7 @@ wstring ChakraCoreHost::loadScript(wstring fileName)
 	}
 
 	fread((void *)rawBytes, sizeof(char), lengthBytes, file);
-
+#ifdef _WIN32
 	wchar_t *contents = (wchar_t *)calloc(lengthBytes + 1, sizeof(wchar_t));
 	if (contents == nullptr)
 	{
@@ -87,11 +104,86 @@ wstring ChakraCoreHost::loadScript(wstring fileName)
 		fwprintf(stderr, L"chakrahost: fatal error.\n");
 		return wstring();
 	}
+#else
+	mbstate_t mbState;
+	memset(&mbState,0,sizeof(mbstate_t));
+	mbrlen(NULL,0,&mbState);
+ 	/* Determine size of New Buffer */
+	size_t wstringLen = mbsrtowcs((wchar_t*)nullptr,(const char **)&rawBytes,0,&mbState);
+	if(wstringLen == (size_t)-1)
+	{
+		/* Invalid Character Found */
+		free(rawBytes);
+		fwprintf(stderr, L"chakrahost: fatal error.\n");
+		return wstring();
+	}
+	wstringLen++;
+	wchar_t *contents = (wchar_t *)calloc(wstringLen, sizeof(wchar_t));
+	if (contents == nullptr)
+	{
+		free(rawBytes);
+		fwprintf(stderr, L"chakrahost: fatal error.\n");
+		return wstring();
+	}
 
+	mbsrtowcs(contents,(const char **)&rawBytes,wstringLen,&mbState);
+#endif
 	wstring result = contents;
 	free(rawBytes);
 	free(contents);
 	return result;
+}
+
+JsErrorCode ChakraCoreHost::getStringPointer(JsValueRef messageValue, wchar_t **result, size_t* resultLength)
+{
+#if defined(_WIN32)
+	return JsStringToPointer(messageValue, result, resultLength) != JsNoError);
+#else
+	JsErrorCode results;
+	wchar_t *contents = nullptr;
+	size_t contentsLen;
+	uint8_t *utf8String;
+	size_t utf8LenLength;
+	results = JsCopyStringUtf8(messageValue, nullptr,0, &utf8LenLength);
+	if(results != JsNoError)
+	{
+		return results;
+	}
+	utf8String = (uint8_t*)malloc(utf8LenLength+1);
+	JsCopyStringUtf8(messageValue, utf8String,utf8LenLength+1,nullptr);
+	if(results != JsNoError)
+	{
+		/* Failed to Copy String */
+		free(utf8String);
+		return results;
+	}
+	utf8String[utf8LenLength] = 0;
+	mbstate_t mbState;
+	memset(&mbState,0,sizeof(mbstate_t));
+	mbrlen(NULL,0,&mbState);
+ 	/* Determine size of New Buffer */
+	contentsLen = mbsrtowcs((wchar_t*)nullptr,(const char **)&utf8String,0,&mbState);
+	if(contentsLen == (size_t)-1)
+	{
+		/* Invalid Character Found */
+		free(utf8String);
+		// TODO: Temporary... need better result.
+		return JsErrorOutOfMemory;
+	}
+	contentsLen++;
+	contents = (wchar_t *)calloc(contentsLen, sizeof(wchar_t));
+	if (contents == nullptr)
+	{
+		free(utf8String);
+		return JsErrorOutOfMemory;
+	}
+
+	mbsrtowcs(contents,(const char **)&utf8String,contentsLen,&mbState);
+	free(utf8String);
+	*result=contents;
+	*resultLength=contentsLen;
+	return results;
+#endif
 }
 
 // run script
@@ -101,28 +193,52 @@ wstring ChakraCoreHost::runScript(wstring script)
 	{
 		JsValueRef result;
 		JsValueRef promiseResult;
-
+#if !defined(_WIN32)
+		mbstate_t mbState;
+		const wchar_t* scriptSrc = script.c_str();
+		memset(&mbState,0,sizeof(mbstate_t));
+		mbrlen(NULL,0,&mbState);
+		size_t wideStringLength = wcslen(scriptSrc);
+		size_t multiByteStringLength = 	wcsrtombs(nullptr,&scriptSrc,0,&mbState);
+		size_t conversionResult;
+		char* mbString = (char *)calloc(multiByteStringLength + 1, sizeof(char));
+		conversionResult = wcsrtombs(mbString,&scriptSrc,multiByteStringLength,&mbState);
+		JsValueRef ScriptSource;
+		JsCreateStringUtf8((uint8_t*)mbString,multiByteStringLength,&ScriptSource);
+		JsValueRef ScriptName;
+		JsCreateStringUtf8((uint8_t*)"",1,&ScriptName);
+		// Run the script.
+		if (JsRun(ScriptSource, currentSourceContext++, ScriptName,JsParseScriptAttributeNone, &result) != JsNoError)
+		{
+#else
 		// Run the script.
 		if (JsRunScript(script.c_str(), currentSourceContext++, L"", &result) != JsNoError)
 		{
+#endif
 			// Get error message
 			JsValueRef exception;
 			if (JsGetAndClearException(&exception) != JsNoError)
 				return L"failed to get and clear exception";
 
 			JsPropertyIdRef messageName;
-			if (JsGetPropertyIdFromName(L"message", &messageName) != JsNoError)
+			if (getPropertyID(L"message", &messageName) != JsNoError)
 				return L"failed to get error message id";
 
 			JsValueRef messageValue;
 			if (JsGetProperty(exception, messageName, &messageValue))
 				return L"failed to get error message";
 
+#if defined(_WIN32)
 			const wchar_t *message;
 			size_t length;
 			if (JsStringToPointer(messageValue, &message, &length) != JsNoError)
 				return L"failed to convert error message";
-
+#else
+			wchar_t *message;
+			size_t length;
+			if (getStringPointer(messageValue, &message, &length) != JsNoError)
+				return L"failed to convert error message";
+#endif
 			return message;
 		}
 
@@ -148,18 +264,46 @@ wstring ChakraCoreHost::runScript(wstring script)
 
 		// Convert the return value to wstring.
 		JsValueRef stringResult;
-		const wchar_t *returnValue;
-		size_t stringLength;
+
 		if (JsConvertValueToString(result, &stringResult) != JsNoError)
 			return L"failed to convert value to string.";
+
+#if defined(_WIN32)
+		const wchar_t *returnValue;
+		size_t stringLength;
 		if (JsStringToPointer(stringResult, &returnValue, &stringLength) != JsNoError)
 			return L"failed to convert return value.";
+#else
+		wchar_t *returnValue;
+		size_t stringLength;
+		if (getStringPointer(stringResult, &returnValue, &stringLength) != JsNoError)
+			return L"failed to convert return value.";
+#endif
 		return returnValue;
 	}
 	catch (...)
 	{
 		return L"chakrahost: fatal error: internal error.\n";
 	}
+}
+
+JsErrorCode ChakraCoreHost::getPropertyID(const wchar_t *propertyName, JsPropertyIdRef *propertyId)
+{
+#if defined(_WIN32)
+	return 	JsGetPropertyIdFromName(propertyName, propertyId);
+#else
+	mbstate_t mbState;
+	memset(&mbState,0,sizeof(mbstate_t));
+	mbrlen(NULL,0,&mbState);
+	size_t wideStringLength = wcslen(propertyName);
+	size_t multiByteStringLength = 	wcsrtombs(nullptr,&propertyName,0,&mbState);
+	size_t conversionResult;
+	char* mbString = (char *)calloc(multiByteStringLength + 1, sizeof(char));
+	conversionResult = wcsrtombs(mbString,&propertyName,multiByteStringLength,&mbState);
+
+	return JsCreatePropertyIdUtf8(mbString, multiByteStringLength,propertyId);
+#endif
+
 }
 
 ChakraCoreHost::~ChakraCoreHost()
@@ -184,10 +328,30 @@ JsValueRef Binding::mouseCallbackThisArg;
 //	  Binding - Util functions
 // ******************************
 
+JsErrorCode Binding::getPropertyID(const wchar_t *propertyName, JsPropertyIdRef *propertyId)
+{
+#if defined(_WIN32)
+	return 	JsGetPropertyIdFromName(propertyName, propertyId);
+#else
+	mbstate_t mbState;
+	memset(&mbState,0,sizeof(mbstate_t));
+	mbrlen(NULL,0,&mbState);
+	size_t wideStringLength = wcslen(propertyName);
+	size_t multiByteStringLength = 	wcsrtombs(nullptr,&propertyName,0,&mbState);
+	size_t conversionResult;
+	char* mbString = (char *)calloc(multiByteStringLength + 1, sizeof(char));
+	conversionResult = wcsrtombs(mbString,&propertyName,multiByteStringLength,&mbState);
+
+	return JsCreatePropertyIdUtf8(mbString, multiByteStringLength,propertyId);
+#endif
+
+}
+
+
 void Binding::setCallback(JsValueRef object, const wchar_t *propertyName, JsNativeFunction callback, void *callbackState)
 {
 	JsPropertyIdRef propertyId;
-	JsGetPropertyIdFromName(propertyName, &propertyId);
+	getPropertyID(propertyName, &propertyId);
 	JsValueRef function;
 	JsCreateFunction(callback, callbackState, &function);
 	JsSetProperty(object, propertyId, function, true);
@@ -196,7 +360,7 @@ void Binding::setCallback(JsValueRef object, const wchar_t *propertyName, JsNati
 void Binding::setProperty(JsValueRef object, const wchar_t *propertyName, JsValueRef property)
 {
 	JsPropertyIdRef propertyId;
-	JsGetPropertyIdFromName(propertyName, &propertyId);
+	getPropertyID(propertyName, &propertyId);
 	JsSetProperty(object, propertyId, property, true);
 }
 
@@ -204,7 +368,7 @@ JsValueRef Binding::getProperty(JsValueRef object, const wchar_t *propertyName)
 {
 	JsValueRef output;
 	JsPropertyIdRef propertyId;
-	JsGetPropertyIdFromName(propertyName, &propertyId);
+	getPropertyID(propertyName, &propertyId);
 	JsGetProperty(object, propertyId, &output);
 	return output;
 }
@@ -224,10 +388,20 @@ JsValueRef CALLBACK Binding::JSLog(JsValueRef callee, bool isConstructCall, JsVa
 		}
 		JsValueRef stringValue;
 		JsConvertValueToString(arguments[index], &stringValue);
+#if defined(_WIN32)
 		const wchar_t *string;
 		size_t length;
 		JsStringToPointer(stringValue, &string, &length);
 		wprintf(L"%s", string);
+#else
+		uint8_t *utf8String;
+		size_t stringLength;
+		JsCopyStringUtf8(stringValue, nullptr,0, &stringLength);
+		utf8String = (uint8_t*)malloc(stringLength+1);
+		JsCopyStringUtf8(stringValue, utf8String,stringLength+1,nullptr);
+		utf8String[stringLength] = 0;
+		printf("%s", utf8String);
+#endif
 	}
 	wprintf(L"\n");
 	return JS_INVALID_REFERENCE;
