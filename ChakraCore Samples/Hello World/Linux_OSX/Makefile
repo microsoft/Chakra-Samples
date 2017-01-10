@@ -25,7 +25,7 @@ else
 CFLAGS=-lstdc++ -std=c++0x -I$(IDIR)
 FORCE_STARTS=-Wl,--whole-archive
 FORCE_ENDS=-Wl,--no-whole-archive
-LIBS=-pthread -lm -ldl -licuuc -lunwind-x86_64 -Wno-c++11-compat-deprecated-writable-strings \
+LIBS=-pthread -lm -ldl -licuuc -Wno-c++11-compat-deprecated-writable-strings \
 	-Wno-deprecated-declarations -Wno-unknown-warning-option -o sample.o
 endif
 
