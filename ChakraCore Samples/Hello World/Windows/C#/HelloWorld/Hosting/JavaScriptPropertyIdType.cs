@@ -8,10 +8,10 @@
         /// <summary>
         ///     Type enumeration of a JavaScript string property
         /// </summary>
-        JavaScriptPropertyIdTypeString,
+        String,
         /// <summary>
         ///     Type enumeration of a JavaScript symbol property
         /// </summary>
-        JavaScriptPropertyIdTypeSymbol
+        Symbol
     };
 }
