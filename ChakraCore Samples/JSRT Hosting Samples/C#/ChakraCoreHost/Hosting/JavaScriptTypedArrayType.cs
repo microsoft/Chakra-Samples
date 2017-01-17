@@ -28,7 +28,7 @@
         /// <summary>
         ///     An int32 array.
         /// </summary>
-        TypeInt32,
+        Int32,
         /// <summary>
         ///     An uint32 array.
         /// </summary>
