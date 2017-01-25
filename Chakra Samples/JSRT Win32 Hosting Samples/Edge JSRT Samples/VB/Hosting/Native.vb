@@ -312,6 +312,8 @@ Namespace Hosting
 
         Friend Declare Unicode Function JsNumberToDouble Lib "chakra.dll" (value As JavaScriptValue, ByRef doubleValue As Double) As JavaScriptErrorCode
 
+        Friend Declare Unicode Function JsNumberToInt Lib "chakra.dll" (value As JavaScriptValue, ByRef intValue As Integer) As JavaScriptErrorCode
+
         Friend Declare Unicode Function JsConvertValueToNumber Lib "chakra.dll" (value As JavaScriptValue, ByRef numberValue As JavaScriptValue) As JavaScriptErrorCode
 
         Friend Declare Unicode Function JsGetStringLength Lib "chakra.dll" (sringValue As JavaScriptValue, ByRef length As Integer) As JavaScriptErrorCode

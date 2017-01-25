@@ -365,6 +365,9 @@
         internal static extern JavaScriptErrorCode JsNumberToDouble(JavaScriptValue value, out double doubleValue);
 
         [DllImport("chakra.dll")]
+        internal static extern JavaScriptErrorCode JsNumberToInt(JavaScriptValue value, out int intValue);
+
+        [DllImport("chakra.dll")]
         internal static extern JavaScriptErrorCode JsConvertValueToNumber(JavaScriptValue value, out JavaScriptValue numberValue);
 
         [DllImport("chakra.dll")]
