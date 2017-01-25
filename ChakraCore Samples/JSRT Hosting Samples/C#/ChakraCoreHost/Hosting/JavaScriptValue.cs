@@ -523,6 +523,26 @@
         }
 
         /// <summary>
+        ///     Retrieves the <c>int</c> value of a <c>Number</c> value.
+        /// </summary>
+        /// <remarks>
+        ///     <para>
+        ///     This function retrieves the value of a Number value. It will fail with
+        ///     <c>InvalidArgument</c> if the type of the value is not <c>Number</c>.
+        ///     </para>
+        ///     <para>
+        ///     Requires an active script context.
+        ///     </para>
+        /// </remarks>
+        /// <returns>The <c>int</c> value.</returns>
+        public int ToInt32()
+        {
+            int value;
+            Native.ThrowIfError(Native.JsNumberToInt(this, out value));
+            return value;
+        }
+
+        /// <summary>
         ///     Retrieves the string pointer of a <c>String</c> value.
         /// </summary>
         /// <remarks>
