@@ -6,10 +6,8 @@
 IDIR=../lib/Jsrt
 CC=g++
 
-LIBRARY_PATH=../BuildLinux/$(BUILD_TYPE)/lib
-LDIR=$(LIBRARY_PATH)/../pal/src/libChakra.Pal.a \
-	$(LIBRARY_PATH)/Common/Core/libChakra.Common.Core.a \
-	$(LIBRARY_PATH)/Jsrt/libChakra.Jsrt.a
+LIBRARY_PATH=../BuildLinux/$(BUILD_TYPE)
+LDIR=$(LIBRARY_PATH)/bin/ChakraCore/libChakraCoreStatic.a
 
 ifeq (darwin, ${PLATFORM})
 ICU4C_LIBRARY_PATH ?= /usr/local/opt/icu4c
