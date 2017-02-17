@@ -224,7 +224,7 @@ Public Module Program
         Dim returnValue As Integer = 1
         Dim commandLineArguments As CommandLineArguments = ProcessArguments(arguments)
 
-        If arguments.Length - commandLineArguments.ArgumentsStart < 0 Then
+        If arguments.Length - commandLineArguments.ArgumentsStart < 1 Then
             Console.Error.WriteLine("usage: chakrahost [-debug] [-profile] <script name> <arguments>")
             Return returnValue
         End If

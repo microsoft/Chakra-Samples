@@ -207,7 +207,7 @@ namespace ChakraHost
             CommandLineArguments commandLineArguments;
             commandLineArguments.ArgumentsStart = 0;
 
-            if (arguments.Length - commandLineArguments.ArgumentsStart < 0)
+            if (arguments.Length - commandLineArguments.ArgumentsStart < 1)
             {
                 Console.Error.WriteLine("usage: chakrahost <script name> <arguments>");
                 return returnValue;
