@@ -3,7 +3,7 @@
     /// <summary>
     ///     Type enumeration of a JavaScript property
     /// </summary>
-    public enum JavaSciptPropertyIdType
+    public enum JavaScriptPropertyIdType
     {
         /// <summary>
         ///     Type enumeration of a JavaScript string property
