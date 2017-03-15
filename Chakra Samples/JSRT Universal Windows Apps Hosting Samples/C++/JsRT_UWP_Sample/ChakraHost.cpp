@@ -10,6 +10,7 @@ void CALLBACK PromiseContinuationCallback(JsValueRef task, void *callbackState)
 	// Save promise task in taskQueue.
 	queue<JsValueRef> * q = (queue<JsValueRef> *)callbackState;
 	q->push(task);
+	JsAddRef(task, nullptr);
 }
 
 // Initilize host
@@ -91,6 +92,7 @@ wstring _cdecl ChakraHost::runScript(wstring script)
 			JsValueRef global;
 			JsGetGlobalObject(&global);
 			JsCallFunction(task, &global, 1, &result);
+			JsRelease(task, nullptr);
 		}
 
 		// Convert the return value to wstring.

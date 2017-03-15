@@ -15,6 +15,7 @@ namespace ChakraHost
         private static void promiseContinuationCallback(JavaScriptValue task, IntPtr callbackState)
         {
             taskQueue.Enqueue(task);
+            task.AddRef();
         }
 
         public ChakraHost()
@@ -88,6 +89,7 @@ namespace ChakraHost
                     Native.JsGetGlobalObject(out global);
                     JavaScriptValue[] args = new JavaScriptValue[1] {global};
                     Native.JsCallFunction(task, args, 1, out promiseResult);
+                    task.Release();
                 }
 
                 // Convert the return value.
