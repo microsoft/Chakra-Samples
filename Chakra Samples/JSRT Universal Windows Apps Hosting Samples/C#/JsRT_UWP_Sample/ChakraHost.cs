@@ -10,6 +10,12 @@ namespace ChakraHost
         private static JavaScriptSourceContext currentSourceContext = JavaScriptSourceContext.FromIntPtr(IntPtr.Zero);
         private static JavaScriptRuntime runtime;
         private static Queue taskQueue = new Queue();
+        private static readonly JavaScriptPromiseContinuationCallback promiseContinuationDelegate = promiseContinuationCallback;
+
+        private static void promiseContinuationCallback(JavaScriptValue task, IntPtr callbackState)
+        {
+            taskQueue.Enqueue(task);
+        }
 
         public ChakraHost()
         {
@@ -28,13 +34,7 @@ namespace ChakraHost
             if (Native.JsSetCurrentContext(context) != JavaScriptErrorCode.NoError)
                 return "failed to set current context.";
 
-            // ES6 Promise callback
-            JavaScriptPromiseContinuationCallback promiseContinuationCallback = delegate (JavaScriptValue task, IntPtr callbackState)
-            {
-                taskQueue.Enqueue(task);
-            };
-
-            if (Native.JsSetPromiseContinuationCallback(promiseContinuationCallback, IntPtr.Zero) != JavaScriptErrorCode.NoError)
+            if (Native.JsSetPromiseContinuationCallback(promiseContinuationDelegate, IntPtr.Zero) != JavaScriptErrorCode.NoError)
                 return "failed to setup callback for ES6 Promise";
 
             if (Native.JsProjectWinRTNamespace("Windows") != JavaScriptErrorCode.NoError)
