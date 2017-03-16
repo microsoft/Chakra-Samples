@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
 using ChakraHost.Hosting;
+using System.Collections.Generic;
+using System.Threading;
 
 namespace ChakraHost
 {
@@ -11,11 +13,40 @@ namespace ChakraHost
             public int ArgumentsStart;
         };
 
+        class TimeoutCall
+        {
+            public TimeoutCall( int msecs, JavaScriptValue callback_, JavaScriptValue callee_)
+            {
+                dt = InspecificNow().AddMilliseconds(msecs);
+                callback = callback_;
+                callee = callee_;
+                callback.AddRef();
+                callee.AddRef();
+            }
+            public DateTime dt;
+            public JavaScriptValue callback;
+            public JavaScriptValue callee;
+            public void CallTimeoutFunction()
+            {
+                callback.CallFunction(callee);
+                callback.Release();
+                callee.Release();
+            }
+        }
+
+        private static DateTime InspecificNow()
+        {
+            return DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Unspecified);
+        }
+
+        private static SortedList<DateTime, TimeoutCall> timeouts = new SortedList<DateTime, TimeoutCall>();
+
         private static JavaScriptSourceContext currentSourceContext = JavaScriptSourceContext.FromIntPtr(IntPtr.Zero);
         
         // We have to hold on to the delegates on the managed side of things so that the
         // delegates aren't collected while the script is running.
         private static readonly JavaScriptNativeFunction echoDelegate = Echo;
+        private static readonly JavaScriptNativeFunction setTimeoutDelegate = SetTimeout;
         private static readonly JavaScriptNativeFunction runScriptDelegate = RunScript;
 
         private static void ThrowException(string errorString)
@@ -40,6 +71,23 @@ namespace ChakraHost
 
             Console.WriteLine();
 
+            return JavaScriptValue.Invalid;
+        }
+
+        private static JavaScriptValue SetTimeout(JavaScriptValue callee, bool isConstructCall, JavaScriptValue[] arguments, ushort argumentCount, IntPtr callbackData)
+        {
+            // setTimeout signature is (callback, after)
+            if (arguments.Length < 2)
+            {
+                Console.WriteLine("Invalid argument lengths, required 2");
+                return JavaScriptValue.Invalid;
+            }
+            JavaScriptValue callbackValue = arguments[1];
+            JavaScriptValue timeout = arguments[2];
+            JavaScriptValue afterValue = arguments[2].ConvertToNumber();
+            int after = (int)Math.Max(afterValue.ToDouble(), 1.0);
+            TimeoutCall to = new TimeoutCall(after, callbackValue, callee);
+            timeouts.Add(to.dt,to);
             return JavaScriptValue.Invalid;
         }
 
@@ -141,6 +189,7 @@ namespace ChakraHost
 
                 DefineHostCallback(hostObject, "echo", echoDelegate, IntPtr.Zero);
                 DefineHostCallback(hostObject, "runScript", runScriptDelegate, IntPtr.Zero);
+                DefineHostCallback(JavaScriptValue.GlobalObject, "setTimeout", setTimeoutDelegate, IntPtr.Zero);
 
                 //
                 // Create an array for arguments.
@@ -248,6 +297,20 @@ namespace ChakraHost
                         try
                         {
                             result = JavaScriptContext.RunScript(script, currentSourceContext++, arguments[commandLineArguments.ArgumentsStart]);
+                            while( timeouts.Count > 0)
+                            {
+                                DateTime inow = InspecificNow();
+                                DateTime next = timeouts.Keys[0];
+                                TimeSpan diff = next.Subtract(inow);
+                                if ( diff.TotalMilliseconds <= 0 )
+                                {
+                                    timeouts.Values[0].CallTimeoutFunction();
+                                    timeouts.RemoveAt(0);
+                                }else
+                                {
+                                    Thread.Sleep(diff);
+                                }
+                            }
                         }
                         catch (JavaScriptScriptException e)
                         {

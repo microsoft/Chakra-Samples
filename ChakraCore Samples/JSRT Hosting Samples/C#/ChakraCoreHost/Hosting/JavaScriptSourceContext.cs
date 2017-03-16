@@ -59,7 +59,7 @@
         /// <returns>A new source context that reflects the subtraction of the offset from the context.</returns>
         public static JavaScriptSourceContext operator -(JavaScriptSourceContext context, int offset)
         {
-            return FromIntPtr(context.context - offset);
+            return FromIntPtr(new IntPtr(context.context.ToInt32() - offset));
         }
 
         /// <summary>
@@ -80,7 +80,7 @@
         /// <returns>A new source context that reflects the decrementing of the context.</returns>
         public static JavaScriptSourceContext operator --(JavaScriptSourceContext context)
         {
-            return FromIntPtr(context.context - 1);
+            return FromIntPtr( new IntPtr(context.context.ToInt32() - 1));
         }
 
         /// <summary>
@@ -101,7 +101,7 @@
         /// <returns>A new source context that reflects the addition of the offset to the context.</returns>
         public static JavaScriptSourceContext operator +(JavaScriptSourceContext context, int offset)
         {
-            return FromIntPtr(context.context + offset);
+            return FromIntPtr(new IntPtr(context.context.ToInt32() + offset));
         }
 
         /// <summary>
@@ -122,7 +122,7 @@
         /// <returns>A new source context that reflects the incrementing of the context.</returns>
         public static JavaScriptSourceContext operator ++(JavaScriptSourceContext context)
         {
-            return FromIntPtr(context.context + 1);
+            return FromIntPtr(new IntPtr(context.context.ToInt32() + 1));
         }
 
         /// <summary>
