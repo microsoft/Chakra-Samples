@@ -17,8 +17,10 @@ This sample requires Windows 7 SP1 or above with either Visual Studio 2013 or 20
 	* **ChakraCore.lib** and **ChakraCore.dll** from `Build\VcBuild\bin\[platform+output]\`.
 2. Open **ChakraCoreHost.sln** with Visual Studio.
 3. Copy the headers and lib to the sample project's directory, and copy **ChakraCore.dll** to the sample project's output directory. 
-4. Build the sample by pressing  **F6**  or using  **Build > Build Solution**.
-5. Run the sample by pressing  **Ctrl+F5**  or using  **Debug > Start Without Debugging**.
+4. Create a sample script, e.g. `host.echo("Hello world");`.
+5. Provide the path to the script file as command line argument through **Project > Properties > Configuration Properties > Debugging > Command Arugments**.
+6. Build the sample by pressing  **F6**  or using  **Build > Build Solution**.
+7. Run the sample by pressing  **Ctrl+F5**  or using  **Debug > Start Without Debugging**.
 
 ## Help us improve our samples
 Help us improve out samples by sending us a pull-request or opening a [GitHub Issue](https://github.com/Microsoft/Chakra-Samples/issues/new).
