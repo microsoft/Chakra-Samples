@@ -1,3 +1,5 @@
+
+#include <string>
 #include "ChakraCoreHost.h"
 
 int main() 

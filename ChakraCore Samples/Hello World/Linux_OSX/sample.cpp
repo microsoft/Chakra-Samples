@@ -33,6 +33,8 @@ int main()
     // Your script; try replace hello-world with something else
     const char* script = "(()=>{return \'Hello World!\';})()";
 
+    FAIL_CHECK(JsInitializeRuntime(0, nullptr));
+
     // Create a runtime.
     FAIL_CHECK(JsCreateRuntime(JsRuntimeAttributeNone, nullptr, &runtime));
 
@@ -69,6 +71,7 @@ int main()
     // Dispose runtime
     FAIL_CHECK(JsSetCurrentContext(JS_INVALID_REFERENCE));
     FAIL_CHECK(JsDisposeRuntime(runtime));
+    FAIL_CHECK(JsFinalizeRuntime());
 
     return 0;
 }
