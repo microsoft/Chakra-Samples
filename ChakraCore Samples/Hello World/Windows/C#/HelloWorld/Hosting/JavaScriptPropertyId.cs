@@ -128,14 +128,5 @@
         {
             return id.ToInt32();
         }
-
-        /// <summary>
-        ///     Converts the property ID to a string.
-        /// </summary>
-        /// <returns>The name of the property ID.</returns>
-        public override string ToString()
-        {
-            return Name;
-        }
     }
 }
