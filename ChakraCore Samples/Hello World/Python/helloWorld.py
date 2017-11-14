@@ -27,7 +27,7 @@ if sys.platform != 'win32':
     # Attach main thread
     chakraCore.DllMain(0, 2, 0);
 
-script = create_string_buffer("(()=>{return \'Hello world!\';})()")
+script = create_string_buffer("(()=>{return \'Hello world!\';})()".encode('UTF-16'))
 fileName = "sample.js"
 
 runtime = c_void_p()
@@ -43,7 +43,7 @@ chakraCore.JsSetCurrentContext(context);
 
 fname = c_void_p();
 # create JsValueRef from filename
-chakraCore.JsCreateStringUtf8(fileName, len(fileName), byref(fname));
+chakraCore.JsCreateString(fileName, len(fileName), byref(fname));
 
 scriptSource = c_void_p();
 # Create ArrayBuffer from script source
@@ -51,7 +51,7 @@ chakraCore.JsCreateExternalArrayBuffer(script, len(script), 0, 0, byref(scriptSo
 
 jsResult = c_void_p();
 # Run the script.
-chakraCore.JsRun(scriptSource, 0, fname, 0, byref(jsResult));
+chakraCore.JsRun(scriptSource, 0, fname, 0x02, byref(jsResult));
 
 # Convert script result to String in JavaScript; redundant if script returns a String
 resultJSString = c_void_p()
@@ -59,12 +59,12 @@ chakraCore.JsConvertValueToString(jsResult, byref(resultJSString));
 
 stringLength = c_size_t();
 # Get buffer size needed for the result string
-chakraCore.JsCopyStringUtf8(resultJSString, 0, 0, byref(stringLength));
+chakraCore.JsCopyString(resultJSString, 0, 0, byref(stringLength));
 
 resultSTR = create_string_buffer(stringLength.value + 1); # buffer is big enough to store the result
 
 # Get String from JsValueRef
-chakraCore.JsCopyStringUtf8(resultJSString, byref(resultSTR), stringLength.value + 1, 0);
+chakraCore.JsCopyString(resultJSString, byref(resultSTR), stringLength.value + 1, 0);
 
 # Set `null-ending` to the end
 resultSTRLastByte = (c_char * stringLength.value).from_address(addressof(resultSTR))
