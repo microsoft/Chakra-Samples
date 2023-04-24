@@ -73,4 +73,5 @@ resultSTRLastByte = '\0';
 print("Result from ChakraCore: ", resultSTR.value);
 
 # Dispose runtime
+chakraCore.JsSetCurrentContext(0)
 chakraCore.JsDisposeRuntime(runtime);
